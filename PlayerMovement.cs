@@ -24,7 +24,7 @@ public class PlayerMovement : MonoBehaviour
 		Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
 
 		// Player's horizontal speed based on grounding.
-		if(!controller.colInfo.isGrounded)
+		if(!controller.colInfo.bottom)
         {
 			velocity.x = input.x * airStrafeSpeed;
 		}
@@ -40,9 +40,8 @@ public class PlayerMovement : MonoBehaviour
 			velocity.x = 0;
         }
 
-		if (controller.colInfo.isGrounded)
+		if (controller.colInfo.bottom)
 		{
-			print(input.y);
 			velocity.y = input.y * jumpForce;
 		}
 
