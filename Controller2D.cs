@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,15 +6,13 @@ using UnityEngine;
 [RequireComponent(typeof(BoxCollider2D))]
 public class Controller2D : MonoBehaviour
 {
+    // TODO:
     // Implement slopes
     // Implement continuous mode (always check for collisions from every direction.)
+    //---------------------------------------------------------------------------------
 
-    struct RayOrigins
-    {
-        public Vector2 botLeft, botRight;
-        public Vector2 topLeft;
-    }
 
+    #region Collision info and masks
     // Controller Collision Info
     public struct ColInfo
     {
@@ -29,30 +28,69 @@ public class Controller2D : MonoBehaviour
             becameGroundedLastFrame = false;
         }
     }
-
     public ColInfo colInfo;
 
     BoxCollider2D col;
     // The layer that the player collides with.
     public LayerMask colMask;
+    #endregion
+
+    #region Ray variables
+    struct RayOrigins
+    {
+        public Vector2 botLeft, botRight;
+        public Vector2 topLeft;
+    }
+    RayOrigins rayOrigins;
+
     // The amount that the ray should be fired from within the controllers own bounds.
     public float insetWidth = 0.02f;
     public float insetTimesFactor = -2;
 
-    RayOrigins rayOrigins;
+    // Number of rays fired.
     public int horizontalRayCount = 4;
     public int verticalRayCount = 4;
+
+    // Spacing between each ray.
     private float verticalRaySpacing;
     private float horizontalRaySpacing;
+    #endregion
 
     public Vector2 velocityLastFrame;
 
+    #region Events
+    public event Action<RaycastHit2D> onCollide;
+    public event Action<Collider2D> onTriggerEnter;
+    public event Action<Collider2D> onTriggerExit;
+    #endregion
+
+    #region Monobehaviour Overrides
     private void Start()
     {
         col = GetComponent<BoxCollider2D>();
         CalculateRaySpacings();
     }
+    #endregion
 
+    #region Event Handling
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if(onTriggerEnter != null)
+        {
+            onTriggerEnter(collision);
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if(onTriggerExit != null)
+        {
+            onTriggerExit(collision);
+        }
+    }
+    #endregion
+
+    #region Ray spacing and origins
     private void CalculateRaySpacings()
     {
         Bounds bounds = col.bounds;
@@ -73,7 +111,9 @@ public class Controller2D : MonoBehaviour
         rayOrigins.botRight = new Vector2(bounds.max.x, bounds.min.y);
         rayOrigins.topLeft = new Vector2(bounds.min.x, bounds.max.y);
     }
+    #endregion
 
+    #region Controller Movement
     public void Move(Vector2 moveVector)
     {
         colInfo.groundedLastFrame = colInfo.bottom;
@@ -100,7 +140,9 @@ public class Controller2D : MonoBehaviour
 
         velocityLastFrame = moveVector;
     }
+    #endregion
 
+    #region Controller Collision Detection
     private void HorizontalMove(ref Vector2 moveVector)
     {
         Vector2 rayDir = (Mathf.Sign(moveVector.x) == -1) ? Vector2.left : Vector2.right;
@@ -177,4 +219,5 @@ public class Controller2D : MonoBehaviour
 
         }
     }
+    #endregion
 }
